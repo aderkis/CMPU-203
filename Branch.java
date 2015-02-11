@@ -32,15 +32,13 @@ public class Branch implements FiniteSet {
         return answer;
     }
     
-    public FiniteSet add(int elt) {
-        FiniteSet answer = this;       
+       public FiniteSet add(int elt) {      
         if(elt < key) {
-            answer = left.add(elt).union(right);
+            return new Branch(left.add(elt), key, right);
         } else if(elt > key) {
-            answer = right.add(elt).union(left);
-        }
-        return answer;
-    }
+            return new Branch(left, key, right.add(elt));
+        } else {return this;}
+       }
     
     public FiniteSet remove(int elt) {
         FiniteSet answer = this;
