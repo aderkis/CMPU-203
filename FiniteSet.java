@@ -24,6 +24,10 @@ public interface FiniteSet {
     
     public String toString();
     
+    // included testers in FiniteSet and not just Branch to allow tests to involve
+    // all sets, rather than just nonempty sets
+    public boolean prop1Tester(int x, int y);
+    public boolean prop2Tester(FiniteSet set, int x);
     
 
 }
