@@ -37,7 +37,7 @@ public class Leaf implements FiniteSet {
     }
     
     public FiniteSet diff(FiniteSet set) {
-        return this;
+        return set;
     }
     
     public boolean equal(FiniteSet set) {
@@ -47,5 +47,10 @@ public class Leaf implements FiniteSet {
     public boolean subset(FiniteSet set) {
         return true;
     }
+    
+    public String toString() {
+        return "";
+    }
+    
     
 }
