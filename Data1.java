@@ -1,4 +1,5 @@
 package data1;
+import java.util.Random;
 
 public class Data1 {
 
@@ -70,6 +71,35 @@ public class Data1 {
         System.out.println("t1 subset t2 vs true: " + Boolean.toString(t1.subset(t2)));
         System.out.println("t4 subset t2 vs false: " + Boolean.toString(t4.subset(t2)));
         System.out.println("t7 subset t7 vs true: " + Boolean.toString(t7.subset(t7)));
+        
+        //property tests using 100 random trees of cardinality 100 with entries between 0 and 99
+        System.out.println("member (add t x) y = true <-> x = y \\/ member t y = true");
+        int answer1 = 0;
+        for(int i=0; i<100; i++) {        
+            Random rng = new Random();
+            FiniteSet branch = Branch.randBranch(100);
+            int x = rng.nextInt(100);
+            int y = rng.nextInt(100);
+            if(!branch.prop1Tester(x,y)) {
+                answer1++;
+            }
+        }
+        System.out.println("Number of failures out of 100: " + Integer.toString(answer1));
+        
+        System.out.println("member (union s s') x = true <-> member s x = true \\/ member s' x = true");
+        int answer2 = 0;
+        for(int i=0; i<100; i++) {
+            Random rng = new Random();
+            FiniteSet branch1 = Branch.randBranch(100);
+            FiniteSet branch2 = Branch.randBranch(100);
+            int x = rng.nextInt(100);
+            if (!branch1.prop2Tester(branch2, x)) {
+                answer2++;
+            }
+        }
+        System.out.println("Number of failures out of 100: " + Integer.toString(answer2));
+
     }
+   
 
 }
