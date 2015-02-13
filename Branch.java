@@ -41,15 +41,13 @@ public class Branch implements FiniteSet {
        }
     
     public FiniteSet remove(int elt) {
-        FiniteSet answer = this;
-        if(elt < key) {
-            answer = right.union(left.remove(elt));
+        if(elt==key) {
+            return left.union(right);
         } else if(elt > key) {
-            answer = left.union(right.remove(elt));
+            return new Branch(left, key, right.remove(elt));
         } else {
-            answer = left.union(right);
+            return new Branch(left.remove(elt), key, right);
         }
-        return answer;
     }
     
     public FiniteSet union(FiniteSet set) {
@@ -65,11 +63,7 @@ public class Branch implements FiniteSet {
     }
     
     public FiniteSet diff(FiniteSet set) {
-        if(set.member(key)) {
-            return this.diff(set.remove(key));
-        } else {
-            return new Branch(left.diff(set), key, right.diff(set));
-        }
+        return this.remove(key).diff(set.remove(key));
     }
     
     public boolean equal(FiniteSet set) {
@@ -82,6 +76,11 @@ public class Branch implements FiniteSet {
             return (this.left.subset(set)||this.left.isEmptyHuh()) &&
                     (this.right.subset(set)||this.right.isEmptyHuh());
         } else {return false;}
+    }
+    
+    public String toString() {
+        return left.toString()+" "+Integer.toString(key)
+                +" "+right.toString();
     }
             
 }
