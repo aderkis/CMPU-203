@@ -22,6 +22,8 @@ public interface FiniteSet {
     
     public boolean subset(FiniteSet set);
     
+    public String toString();
+    
     
 
 }
