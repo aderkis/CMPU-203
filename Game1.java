@@ -20,17 +20,15 @@ public class Game1 {
         s.inkey();
         
         List<Item> items = new ArrayList<Item>();
-
         items.add(new Hero());
         items.add(new Enemy());
         items.add(new Cannon());
         items.add(new Missile());
+        Elements set = new Elements(items);
 
         while (true) {
             s.cls();
-            for(int i=0; i<items.size(); i++) {
-                items.get(i).draw(s);
-            }
+            set.draw(s);
             s.refresh();
             if ( mode == DemoMode.ANIMATION ) {
                 // If you want an animation, then ignore the input and
@@ -44,13 +42,9 @@ public class Game1 {
                 // If you want the player to press any key and/or you
                 // want to inspect the key before continuing
                 CharKey k = s.inkey();
-                for(int i=0; i<items.size(); i++) {
-                    items.get(i).react(k);
-                }
+                set.react(k);
             }
-            for(int i=0; i<items.size(); i++) {
-                items.get(i).tick();
-            }
+            set.tick();
         }
     }
 
@@ -63,6 +57,40 @@ interface Item {
     public void draw(ConsoleSystemInterface s);
     
 }
+
+class Elements {
+    
+    List<Item> elements = new ArrayList<Item>();
+    
+    public Elements(List<Item> elements) {
+        this.elements = elements;
+    }
+    
+    public Elements add(Item elt) {
+        Elements answer = this;
+        answer.elements.add(elt);
+        return answer;
+    }
+    
+    public void tick() {
+        for(int i=0; i<elements.size(); i++) {
+            elements.get(i).tick();
+        }
+    }
+    
+    public void react(CharKey k) {
+        for(int i=0; i<elements.size(); i++) {
+            elements.get(i).react(k);
+        }
+    }
+    
+    public void draw(ConsoleSystemInterface s) {
+        for(int i=0; i<elements.size(); i++) {
+            elements.get(i).draw(s);
+        }
+    }
+}
+
 class Hero implements Item {
     
     int x;
