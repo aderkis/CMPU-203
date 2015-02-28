@@ -74,13 +74,17 @@ class Elements {
     
     public void tick() {
         for(int i=0; i<elements.size(); i++) {
-            elements.get(i).tick();
+            Elements answer = this;
+            answer.elements.add(elements.get(i).tick());
+            answer.elements.remove(i);
         }
     }
     
     public void react(CharKey k) {
         for(int i=0; i<elements.size(); i++) {
-            elements.get(i).react(k);
+            Elements answer = this;
+            answer.elements.add(elements.get(i).react(k));
+            answer.elements.remove(i);
         }
     }
     
@@ -152,15 +156,6 @@ class Hero implements Item {
     }
 
     public void draw ( ConsoleSystemInterface s ) {
-        String disp;
-        switch (y % 4) {
-         case 0: disp =  "/"; break;
-         case 1: disp =  "|"; break;
-         case 2: disp = "\\"; break;
-        default: disp =  "-"; break;
-        }
-        // s.print(x, y+3, disp, s.WHITE);
-
         s.print(x,  y+0, "   +   ", s.CYAN);
         s.print(x,  y+1, "  / \\ ", s.CYAN);
         s.print(x,  y+2, "WARRIOR", s.CYAN);
@@ -281,7 +276,7 @@ class Missile implements Item {
     static int MAX = MAXH;
 
     public Missile() {
-        this(50, 0, 50, 0);
+        this(15, 0, 10, 0);
     }
     public Missile( int x, int dx, int y, int dy ) {
         this.x = x;
