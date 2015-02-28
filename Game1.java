@@ -2,6 +2,7 @@ package game1;
 import net.slashie.libjcsi.wswing.WSwingConsoleInterface;
 import net.slashie.libjcsi.ConsoleSystemInterface;
 import net.slashie.libjcsi.CharKey;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class Game1 {
@@ -17,18 +18,19 @@ public class Game1 {
         s.print(1, 0, "prepare thyself", s.RED);
         s.refresh();
         s.inkey();
+        
+        List<Item> items = new ArrayList<Item>();
 
-        Item m = new Hero();
-        Item e = new Enemy();
-        Item c = new Cannon();
-        Item p = new Missile();
+        items.add(new Hero());
+        items.add(new Enemy());
+        items.add(new Cannon());
+        items.add(new Missile());
 
         while (true) {
             s.cls();
-            m.draw(s);
-            e.draw(s);
-            c.draw(s);
-            p.draw(s);
+            for(int i=0; i<items.size(); i++) {
+                items.get(i).draw(s);
+            }
             s.refresh();
             if ( mode == DemoMode.ANIMATION ) {
                 // If you want an animation, then ignore the input and
@@ -42,13 +44,13 @@ public class Game1 {
                 // If you want the player to press any key and/or you
                 // want to inspect the key before continuing
                 CharKey k = s.inkey();
-                m = m.react(k);
-                e = e.react(k);
+                for(int i=0; i<items.size(); i++) {
+                    items.get(i).react(k);
+                }
             }
-            m = m.tick();
-            e = e.tick();
-            c = c.tick();
-            p = p.tick();
+            for(int i=0; i<items.size(); i++) {
+                items.get(i).tick();
+            }
         }
     }
 
@@ -131,9 +133,9 @@ class Hero implements Item {
         }
         // s.print(x, y+3, disp, s.WHITE);
 
-        s.print(x,  y+0, "   +   ", s.WHITE);
-        s.print(x,  y+1, "  / \\ ", s.WHITE);
-        s.print(x,  y+2, "WARRIOR", s.WHITE);
+        s.print(x,  y+0, "   +   ", s.CYAN);
+        s.print(x,  y+1, "  / \\ ", s.CYAN);
+        s.print(x,  y+2, "WARRIOR", s.CYAN);
         
     }
 
@@ -161,7 +163,7 @@ class Enemy implements Item {
     }
 
     public Item tick () {
-        int nx = x + dx;
+        int nx = x + dx + 1;
         int ny = y + dy;
         if ( nx < 0 && ny < 0) {
             return new Enemy(0, 0, 0, 0);
@@ -185,30 +187,10 @@ class Enemy implements Item {
     }
 
     public Item react( CharKey k ) {
-        if ( k.isDownArrow() ) {
-            return new Enemy(x, 0, y, 1);
-        } else if (k.isUpArrow()) {
-            return new Enemy(x, 0, y, -1);
-        } else if (k.isRightArrow()) {
-            return new Enemy(x, 1, y, 0);
-        } else if (k.isLeftArrow()) {
-            return new Enemy(x, -1, y, 0);
-        } else {
-            return this;
-        }
-
+        return this;
     }
 
     public void draw ( ConsoleSystemInterface s ) {
-        String disp;
-        switch (y % 4) {
-         case 0: disp =  "/"; break;
-         case 1: disp =  "|"; break;
-         case 2: disp = "\\"; break;
-        default: disp =  "-"; break;
-        }
-        // s.print(x, y+3, disp, s.WHITE);
-
         s.print(x,  y+0, " /\\ /\\ ", s.WHITE);
         s.print(x,  y+1, " |  |  ", s.WHITE);
         s.print(x,  y+2, "DIABLO", s.WHITE);
@@ -248,11 +230,11 @@ class Cannon implements Item {
     }
 
     public void draw ( ConsoleSystemInterface s ) {
-        s.print(x,  y+0, "  ______ ", s.WHITE);
-        s.print(x,  y+1, " /      \\ ", s.WHITE);
-        s.print(x,  y+2, "|       |", s.WHITE);
-        s.print(x,  y+3, "|       |", s.WHITE);
-        s.print(x,  y+4, "\\_______/", s.WHITE);
+        s.print(x,  y+0, "  ______ ", s.GRAY);
+        s.print(x,  y+1, " /      \\ ", s.GRAY);
+        s.print(x,  y+2, "|       |", s.GRAY);
+        s.print(x,  y+3, "|       |", s.GRAY);
+        s.print(x,  y+4, "\\_______/", s.GRAY);
         
         
     }
@@ -310,7 +292,7 @@ class Missile implements Item {
     }
 
     public void draw ( ConsoleSystemInterface s ) {
-        s.print(x,  y, "HATE", s.WHITE);
+        s.print(x,  y, "HATE", s.RED);
         
     }
     
