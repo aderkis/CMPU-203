@@ -3,6 +3,7 @@ import net.slashie.libjcsi.wswing.WSwingConsoleInterface;
 import net.slashie.libjcsi.ConsoleSystemInterface;
 import net.slashie.libjcsi.CharKey;
 import java.util.*;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 public class Game1 {
@@ -75,16 +76,14 @@ class Elements {
     public void tick() {
         for(int i=0; i<elements.size(); i++) {
             Elements answer = this;
-            answer.elements.add(elements.get(i).tick());
-            answer.elements.remove(i);
+            answer.elements.set(i, elements.get(i).tick());
         }
     }
     
     public void react(CharKey k) {
         for(int i=0; i<elements.size(); i++) {
             Elements answer = this;
-            answer.elements.add(elements.get(i).react(k));
-            answer.elements.remove(i);
+            answer.elements.set(i, elements.get(i).react(k));
         }
     }
     
@@ -178,6 +177,7 @@ class Enemy implements Item {
     public Enemy() {
         this(0, 0, 0, 0);
     }
+    
     private Enemy( int x, int dx, int y, int dy ) {
         this.x = x;
         this.dx = dx;
@@ -186,7 +186,7 @@ class Enemy implements Item {
     }
 
     public Item tick () {
-        int nx = x + dx + 1;
+        int nx = x + dx;
         int ny = y + dy;
         if ( nx < 0 && ny < 0) {
             return new Enemy(0, 0, 0, 0);
@@ -210,7 +210,16 @@ class Enemy implements Item {
     }
 
     public Item react( CharKey k ) {
-        return this;
+        Random rng = new Random();
+        Item answer = this;
+        int direction = rng.nextInt(3);
+        switch(direction) {
+            case 0: answer = new Enemy(x, 1, y, 0); break;
+            case 1: answer = new Enemy(x, -1, y, 0); break;
+            case 2: answer = new Enemy(x, 0, y, 1); break;
+            case 3: answer = new Enemy(x, 0, y, -1); break;             
+        }
+        return answer;
     }
 
     public void draw ( ConsoleSystemInterface s ) {
@@ -286,7 +295,7 @@ class Missile implements Item {
     }
 
     public Item tick () {
-        int nx = x + dx;
+        int nx = x + dx + 1;
         int ny = y + dy;
         if ( nx < 0 && ny < 0) {
             return new Missile(0, 0, 0, 0);
