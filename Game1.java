@@ -21,6 +21,7 @@ public class Game1 {
         s.inkey();
         
         List<Item> items = new ArrayList<Item>();
+        List<Item> dead = new ArrayList<Item>();
         items.add(new Hero());
         items.add(new Enemy());
         items.add(new Cannon());
@@ -48,6 +49,7 @@ public class Game1 {
             set.tick();
         }
     }
+    
 
     }
     
@@ -56,6 +58,12 @@ interface Item {
     public Item tick();
     public Item react(CharKey k );
     public void draw(ConsoleSystemInterface s);
+    public int getX();
+    public int getY();
+    public void hit();
+    public int type();
+    public Item collision(Item p);
+    public boolean isDeadHuh();
     
 }
 
@@ -92,6 +100,38 @@ class Elements {
             elements.get(i).draw(s);
         }
     }
+    
+    public static int dist(Item p, Item q) {
+        return (int)Math.sqrt((p.getX()-q.getX())^2 + (p.getY()-q.getY())^2);
+    }
+
+    
+}
+
+class Dead implements Item {
+    
+    //0 is Hero
+    //1 is Enemy
+    //2 is Cannon
+    //3 is Missile
+    //only intended to be Enemies and Missiles because if a Hero dies, game is over
+    
+    int formerType;
+    
+    public Dead(int type) {
+        this.formerType = type;
+    }
+    
+    public Item tick() {return this;}
+    public Item react(CharKey k ) {return this;}
+    public void draw(ConsoleSystemInterface s) {}
+    public int getX() {return -1;}
+    public int getY() {return -1;}
+    public void hit() {}
+    public int type() {return -1;}
+    public Item collision(Item p) {return this;}
+    public boolean isDeadHuh() {return true;}
+    
 }
 
 class Hero implements Item {
@@ -100,6 +140,9 @@ class Hero implements Item {
     int y;
     int dx;
     int dy;
+    int hp;
+    boolean isHit;
+    final int RADIUS = 5;
     
     static int MAXH = 22;
     static int MAXW = 73;
@@ -113,11 +156,25 @@ class Hero implements Item {
         this.dx = dx;
         this.y = y;
         this.dy = dy;
+        this.hp = 10;
+        this.isHit = false;
+    }
+    
+    private Hero( int x, int y, int hp) {
+        this.x = x;
+        this.dx = 0;
+        this.y = y;
+        this.dy = 0;
+        this.hp = hp;
+        this.isHit = false;
     }
 
     public Item tick () {
         int nx = x + dx;
         int ny = y + dy;
+        if(isHit) {
+        //    switch()
+        }
         if ( nx < 0 && ny < 0) {
             return new Hero(0, 0, 0, 0);
         } else if (nx > MAXW && ny > MAXH) {
@@ -155,12 +212,52 @@ class Hero implements Item {
     }
 
     public void draw ( ConsoleSystemInterface s ) {
-        s.print(x,  y+0, "   +   ", s.CYAN);
-        s.print(x,  y+1, "  / \\ ", s.CYAN);
-        s.print(x,  y+2, "WARRIOR", s.CYAN);
-        
+        if(this.hp<1) { } else {      
+            s.print(x,  y+0, "   +   ", s.CYAN);
+            s.print(x,  y+1, "  / \\ ", s.CYAN);
+            s.print(x,  y+2, "WARRIOR", s.CYAN);       
+        }     
     }
-
+    
+    public int getX() {
+        return this.x;
+    }
+    
+    public int getY() {
+        return this.y;
+    }
+    
+    public void hit() {
+        this.isHit = true;
+    }
+    
+    public int type() {
+        return 0;
+    }
+    
+    public Item collision(Item p) {
+        int type = p.type();
+        Item answer = this;
+        switch (type) {
+            case 1:
+                answer = new Hero(p.getX(), 0, p.getY(), 0);
+                break;
+            case 3:
+                if (this.hp == 1) {
+                    answer = new Dead(0);
+                } else {
+                    answer = new Hero(this.x, this.y, this.hp--);
+                }
+                break;
+            default:
+                break;
+        }
+        return answer;
+    }
+    
+    public boolean isDeadHuh() {return false;}
+    
+    
 }
 
 class Enemy implements Item {
@@ -169,6 +266,9 @@ class Enemy implements Item {
     int y;
     int dx;
     int dy;
+    boolean isHit;
+    boolean isDead;
+    final int RADIUS = 5;
     
     static int MAXH = 22;
     static int MAXW = 73;
@@ -183,6 +283,7 @@ class Enemy implements Item {
         this.dx = dx;
         this.y = y;
         this.dy = dy;
+        this.isHit = false;
     }
 
     public Item tick () {
@@ -223,11 +324,47 @@ class Enemy implements Item {
     }
 
     public void draw ( ConsoleSystemInterface s ) {
-        s.print(x,  y+0, " /\\ /\\ ", s.WHITE);
-        s.print(x,  y+1, " |  |  ", s.WHITE);
-        s.print(x,  y+2, "DIABLO", s.WHITE);
-        
+        if(this.isHit) {
+            // +1 point
+            
+        } else {
+            s.print(x,  y+0, " /\\ /\\ ", s.WHITE);
+            s.print(x,  y+1, " |  |  ", s.WHITE);
+            s.print(x,  y+2, "DIABLO", s.WHITE);          
+        }      
     }
+    
+    public int getX() {
+        return this.x;
+    }
+    
+    public int getY() {
+        return this.y;
+    }
+    
+    public void hit() {
+        this.isHit = true;
+    }
+    
+    public Item collision(Item p) {
+        int type = p.type();
+        Item answer = this;
+        switch(type) {
+            case 0: answer = new Dead(1); break;
+            case 1: answer = new Enemy(p.getX(), 0, p.getY(), 0);
+            break;
+            case 3: answer = new Dead(1);
+                break;
+            default: break;             
+        }
+        return answer;
+    }
+    
+    public int type() {
+        return 1;
+    }
+    
+    public boolean isDeadHuh() {return false;}
     
 }
 
@@ -239,6 +376,7 @@ class Cannon implements Item {
     static int MAXH = 22;
     static int MAXW = 73;
     static int MAX = MAXH;
+    final int RADIUS = 7;
 
     public Cannon() {
         this(10, 10);
@@ -271,6 +409,25 @@ class Cannon implements Item {
         
     }
     
+    
+    public int getX() {
+        return this.x;
+    }
+    
+    public int getY() {
+        return this.y;
+    }
+    
+    public void hit() { }
+  
+    public int type() {
+        return 2;
+    }
+    
+    public Item collision(Item p) {return this;}
+    
+    public boolean isDeadHuh() {return false;}
+    
 }
 
 class Missile implements Item {
@@ -279,6 +436,8 @@ class Missile implements Item {
     int y;
     int dx;
     int dy;
+    boolean isHit;
+    final int RADIUS = 2;
     
     static int MAXH = 22;
     static int MAXW = 73;
@@ -292,30 +451,17 @@ class Missile implements Item {
         this.dx = dx;
         this.y = y;
         this.dy = dy;
+        this.isHit = false;
     }
 
     public Item tick () {
-        int nx = x + dx + 1;
+        int nx = x + dx + 3;
         int ny = y + dy;
-        if ( nx < 0 && ny < 0) {
-            return new Missile(0, 0, 0, 0);
-        } else if (nx > MAXW && ny > MAXH) {
-            return new Missile(MAXW, 0, MAXH, 0);
-        } else if (nx > MAXW && ny < 0) {
-            return new Missile(MAXW, 0, 0, 0);
-        } else if (nx < 0 && ny > MAXH) {
-            return new Missile(0, 0, MAXH, 0);
-        } else if (nx < 0) {
-            return new Missile(0, 0, ny, 0);
-        } else if (nx > MAXW) {
-            return new Missile(MAXW, 0, ny, 0);
-        } else if (ny < 0) {
-            return new Missile(nx, 0, 0, 0);
-        } else if (ny > MAXH) {
-            return new Missile(nx, 0, MAXH, 0);
-        } else {
-            return new Missile(nx, 0, ny, 0);
-        }
+        Missile answer = new Missile(nx, 0, ny, 0);
+        if ( nx < 0 || ny < 0 || nx > MAXW || ny > MAXH) {
+            answer.isHit = true;
+        } 
+        return answer;
     }
 
     public Item react( CharKey k ) {
@@ -324,8 +470,51 @@ class Missile implements Item {
     }
 
     public void draw ( ConsoleSystemInterface s ) {
-        s.print(x,  y, "HATE", s.RED);
-        
+        if(this.isHit) {
+        } else {
+            s.print(x,  y, "HATE", s.RED);       
+        }
+     
     }
+    
+    public int getX() {
+        return this.x;
+    }
+    
+    public int getY() {
+        return this.y;
+    }
+    
+    public void hit() {
+        this.isHit = true;
+    }
+    
+    public int type() {
+        return 3;
+    }
+    
+    public Item collision(Item p) {
+        int type = p.type();
+        Item answer = this;
+        switch (type) {
+            case 0:
+                answer = new Dead(3);
+                break;
+            case 1:
+                answer = new Dead(3);
+                break;
+            case 2:
+                answer = new Dead(3);
+                break;
+            case 3:
+                answer = new Dead(3);
+                break;
+            default:
+                break;
+        }
+        return answer;
+    }
+    
+    public boolean isDeadHuh() {return false;}
     
 }
