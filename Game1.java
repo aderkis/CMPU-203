@@ -21,7 +21,6 @@ public class Game1 {
         s.inkey();
         
         List<Item> items = new ArrayList<Item>();
-        List<Item> dead = new ArrayList<Item>();
         items.add(new Hero());
         items.add(new Enemy());
         items.add(new Cannon());
@@ -45,6 +44,7 @@ public class Game1 {
                 // want to inspect the key before continuing
                 CharKey k = s.inkey();
                 set.react(k);
+                set.collisions();
             }
             set.tick();
         }
@@ -60,6 +60,7 @@ interface Item {
     public void draw(ConsoleSystemInterface s);
     public int getX();
     public int getY();
+    public int radius();
     public void hit();
     public int type();
     public Item collision(Item p);
@@ -104,8 +105,25 @@ class Elements {
     public static int dist(Item p, Item q) {
         return (int)Math.sqrt((p.getX()-q.getX())^2 + (p.getY()-q.getY())^2);
     }
-
     
+    public Elements collisions() {
+        Elements answer = this;
+        for (int i = 0; i < elements.size(); i++) {
+            for (int j = 0; j < elements.size(); i++) {
+                if (!(elements.get(i).isDeadHuh() || elements.get(j).isDeadHuh())) {
+                    if (i != j) {
+                        if ((dist(elements.get(i), elements.get(j)) < elements.get(i).radius())
+                                || (dist(elements.get(i), elements.get(j)) < elements.get(j).radius())) {
+                            answer.elements.set(i, elements.get(i).collision(elements.get(j)));
+                            answer.elements.set(j, elements.get(j).collision(elements.get(i)));
+                        }
+                    }
+                }
+            }
+        }
+        return answer;
+    }
+
 }
 
 class Dead implements Item {
@@ -127,6 +145,7 @@ class Dead implements Item {
     public void draw(ConsoleSystemInterface s) {}
     public int getX() {return -1;}
     public int getY() {return -1;}
+    public int radius() {return -1;}
     public void hit() {}
     public int type() {return -1;}
     public Item collision(Item p) {return this;}
@@ -221,6 +240,10 @@ class Hero implements Item {
     
     public int getY() {
         return this.y;
+    }
+    
+    public int radius() {
+        return this.RADIUS;
     }
     
     public void hit() {
@@ -334,6 +357,10 @@ class Enemy implements Item {
         return this.y;
     }
     
+    public int radius() {
+        return this.RADIUS;
+    }
+    
     public void hit() {
         this.isHit = true;
     }
@@ -410,6 +437,10 @@ class Cannon implements Item {
         return this.y;
     }
     
+    public int radius() {
+        return this.RADIUS;
+    }
+    
     public void hit() { }
   
     public int type() {
@@ -436,7 +467,7 @@ class Missile implements Item {
     static int MAX = MAXH;
 
     public Missile() {
-        this(15, 0, 10, 0);
+        this(25, 0, 10, 0);
     }
     public Missile( int x, int dx, int y, int dy ) {
         this.x = x;
@@ -471,6 +502,10 @@ class Missile implements Item {
     
     public int getY() {
         return this.y;
+    }
+    
+    public int radius() {
+        return this.RADIUS;
     }
     
     public void hit() {
