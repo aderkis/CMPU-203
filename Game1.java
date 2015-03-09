@@ -109,13 +109,13 @@ class Elements {
     public Elements collisions() {
         Elements answer = this;
         for (int i = 0; i < elements.size(); i++) {
-            for (int j = 0; j < elements.size(); i++) {
+            for (int j = 0; j < elements.size(); j++) { 
                 Item itemI = elements.get(i);
                 Item itemJ = elements.get(j);
                 if (!(itemI.isDeadHuh() || itemJ.isDeadHuh())) {
                     if (i != j) {
-                        if ((dist(itemI, itemJ) < itemI.radius())
-                                || (dist(itemI, itemJ) < itemJ.radius())) {
+                        if ((dist(itemI, itemJ) <= itemI.radius())
+                                || (dist(itemI, itemJ) <= itemJ.radius())) {
                             answer.elements.set(i, itemI.collision(itemJ));
                             answer.elements.set(j, itemJ.collision(itemI));
                         }
