@@ -110,12 +110,14 @@ class Elements {
         Elements answer = this;
         for (int i = 0; i < elements.size(); i++) {
             for (int j = 0; j < elements.size(); i++) {
-                if (!(elements.get(i).isDeadHuh() || elements.get(j).isDeadHuh())) {
+                Item itemI = elements.get(i);
+                Item itemJ = elements.get(j);
+                if (!(itemI.isDeadHuh() || itemJ.isDeadHuh())) {
                     if (i != j) {
-                        if ((dist(elements.get(i), elements.get(j)) < elements.get(i).radius())
-                                || (dist(elements.get(i), elements.get(j)) < elements.get(j).radius())) {
-                            answer.elements.set(i, elements.get(i).collision(elements.get(j)));
-                            answer.elements.set(j, elements.get(j).collision(elements.get(i)));
+                        if ((dist(itemI, itemJ) < itemI.radius())
+                                || (dist(itemI, itemJ) < itemJ.radius())) {
+                            answer.elements.set(i, itemI.collision(itemJ));
+                            answer.elements.set(j, itemJ.collision(itemI));
                         }
                     }
                 }
@@ -168,59 +170,51 @@ class Hero implements Item {
     static int MAX = MAXH;
 
     public Hero() {
-        this(MAXW/2, 0, MAXH/2, 0);
+        this(MAXW/2, 0, MAXH/2, 0, 10);
     }
-    private Hero( int x, int dx, int y, int dy ) {
+    private Hero( int x, int dx, int y, int dy, int hp) {
         this.x = x;
         this.dx = dx;
         this.y = y;
         this.dy = dy;
-        this.hp = 10;
-        this.isHit = false;
-    }
-    
-    private Hero( int x, int y, int hp) {
-        this.x = x;
-        this.dx = 0;
-        this.y = y;
-        this.dy = 0;
         this.hp = hp;
         this.isHit = false;
     }
+
 
     public Item tick () {
         int nx = x + dx;
         int ny = y + dy;
         if ( nx < 0 && ny < 0) {
-            return new Hero(0, 0, 0, 0);
+            return new Hero(0, 0, 0, 0, this.hp);
         } else if (nx > MAXW && ny > MAXH) {
-            return new Hero(MAXW, 0, MAXH, 0);
+            return new Hero(MAXW, 0, MAXH, 0, this.hp);
         } else if (nx > MAXW && ny < 0) {
-            return new Hero(MAXW, 0, 0, 0);
+            return new Hero(MAXW, 0, 0, 0, this.hp);
         } else if (nx < 0 && ny > MAXH) {
-            return new Hero(0, 0, MAXH, 0);
+            return new Hero(0, 0, MAXH, 0, this.hp);
         } else if (nx < 0) {
-            return new Hero(0, 0, ny, 0);
+            return new Hero(0, 0, ny, 0, this.hp);
         } else if (nx > MAXW) {
-            return new Hero(MAXW, 0, ny, 0);
+            return new Hero(MAXW, 0, ny, 0, this.hp);
         } else if (ny < 0) {
-            return new Hero(nx, 0, 0, 0);
+            return new Hero(nx, 0, 0, 0, this.hp);
         } else if (ny > MAXH) {
-            return new Hero(nx, 0, MAXH, 0);
+            return new Hero(nx, 0, MAXH, 0, this.hp);
         } else {
-            return new Hero(nx, 0, ny, 0);
+            return new Hero(nx, 0, ny, 0, this.hp);
         }
     }
 
     public Item react( CharKey k ) {
         if ( k.isDownArrow() ) {
-            return new Hero(x, 0, y, 1);
+            return new Hero(x, 0, y, 1, this.hp);
         } else if (k.isUpArrow()) {
-            return new Hero(x, 0, y, -1);
+            return new Hero(x, 0, y, -1, this.hp);
         } else if (k.isRightArrow()) {
-            return new Hero(x, 1, y, 0);
+            return new Hero(x, 1, y, 0, this.hp);
         } else if (k.isLeftArrow()) {
-            return new Hero(x, -1, y, 0);
+            return new Hero(x, -1, y, 0, this.hp);
         } else {
             return this;
         }
@@ -260,13 +254,13 @@ class Hero implements Item {
         switch (type) {
             case 1:
                 // +1 point
-                answer = new Hero(p.getX(), 0, p.getY(), 0);
+                answer = new Hero(p.getX(), 0, p.getY(), 0, this.hp);
                 break;
             case 3:
                 if (this.hp == 1) {
                     answer = new Dead(0);
                 } else {
-                    answer = new Hero(this.x, this.y, this.hp--);
+                    answer = new Hero(this.x, 0, this.y, 0, this.hp--);
                 }
                 break;
             default:
