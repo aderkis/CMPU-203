@@ -172,9 +172,6 @@ class Hero implements Item {
     public Item tick () {
         int nx = x + dx;
         int ny = y + dy;
-        if(isHit) {
-        //    switch()
-        }
         if ( nx < 0 && ny < 0) {
             return new Hero(0, 0, 0, 0);
         } else if (nx > MAXW && ny > MAXH) {
@@ -211,12 +208,11 @@ class Hero implements Item {
 
     }
 
-    public void draw ( ConsoleSystemInterface s ) {
-        if(this.hp<1) { } else {      
-            s.print(x,  y+0, "   +   ", s.CYAN);
-            s.print(x,  y+1, "  / \\ ", s.CYAN);
-            s.print(x,  y+2, "WARRIOR", s.CYAN);       
-        }     
+    public void draw(ConsoleSystemInterface s) {
+        s.print(x, y + 0, "   +   ", s.CYAN);
+        s.print(x, y + 1, "  / \\ ", s.CYAN);
+        s.print(x, y + 2, "WARRIOR", s.CYAN);
+
     }
     
     public int getX() {
@@ -240,6 +236,7 @@ class Hero implements Item {
         Item answer = this;
         switch (type) {
             case 1:
+                // +1 point
                 answer = new Hero(p.getX(), 0, p.getY(), 0);
                 break;
             case 3:
@@ -267,7 +264,6 @@ class Enemy implements Item {
     int dx;
     int dy;
     boolean isHit;
-    boolean isDead;
     final int RADIUS = 5;
     
     static int MAXH = 22;
@@ -323,15 +319,11 @@ class Enemy implements Item {
         return answer;
     }
 
-    public void draw ( ConsoleSystemInterface s ) {
-        if(this.isHit) {
-            // +1 point
-            
-        } else {
-            s.print(x,  y+0, " /\\ /\\ ", s.WHITE);
-            s.print(x,  y+1, " |  |  ", s.WHITE);
-            s.print(x,  y+2, "DIABLO", s.WHITE);          
-        }      
+    public void draw(ConsoleSystemInterface s) {
+        s.print(x, y + 0, " /\\ /\\ ", s.WHITE);
+        s.print(x, y + 1, " |  |  ", s.WHITE);
+        s.print(x, y + 2, "DIABLO", s.WHITE);
+
     }
     
     public int getX() {
@@ -469,12 +461,8 @@ class Missile implements Item {
 
     }
 
-    public void draw ( ConsoleSystemInterface s ) {
-        if(this.isHit) {
-        } else {
-            s.print(x,  y, "HATE", s.RED);       
-        }
-     
+    public void draw(ConsoleSystemInterface s) {
+        s.print(x, y, "HATE", s.RED);
     }
     
     public int getX() {
