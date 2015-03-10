@@ -161,18 +161,20 @@ class Hero implements Item {
     int y;
     int dx;
     int dy;
+    int lastX;
+    int lastY;
     int hp;
     boolean isHit;
-    final int RADIUS = 5;
+    final int RADIUS = 4;
     
     static int MAXH = 22;
     static int MAXW = 73;
     static int MAX = MAXH;
 
     public Hero() {
-        this(MAXW/2, 0, MAXH/2, 0, 10);
+        this(MAXW/2, 0, MAXH/2, 0, 0, 0, 10);
     }
-    private Hero( int x, int dx, int y, int dy, int hp) {
+    private Hero( int x, int dx, int y, int dy, int lastX, int lastY, int hp) {
         this.x = x;
         this.dx = dx;
         this.y = y;
@@ -186,35 +188,35 @@ class Hero implements Item {
         int nx = x + dx;
         int ny = y + dy;
         if ( nx < 0 && ny < 0) {
-            return new Hero(0, 0, 0, 0, this.hp);
+            return new Hero(0, 0, 0, 0, x, y, this.hp);
         } else if (nx > MAXW && ny > MAXH) {
-            return new Hero(MAXW, 0, MAXH, 0, this.hp);
+            return new Hero(MAXW, 0, MAXH, 0, x, y, this.hp);
         } else if (nx > MAXW && ny < 0) {
-            return new Hero(MAXW, 0, 0, 0, this.hp);
+            return new Hero(MAXW, 0, 0, 0, x, y, this.hp);
         } else if (nx < 0 && ny > MAXH) {
-            return new Hero(0, 0, MAXH, 0, this.hp);
+            return new Hero(0, 0, MAXH, 0, x, y, this.hp);
         } else if (nx < 0) {
-            return new Hero(0, 0, ny, 0, this.hp);
+            return new Hero(0, 0, ny, 0, x, y, this.hp);
         } else if (nx > MAXW) {
-            return new Hero(MAXW, 0, ny, 0, this.hp);
+            return new Hero(MAXW, 0, ny, 0, x, y, this.hp);
         } else if (ny < 0) {
-            return new Hero(nx, 0, 0, 0, this.hp);
+            return new Hero(nx, 0, 0, 0, x, y, this.hp);
         } else if (ny > MAXH) {
-            return new Hero(nx, 0, MAXH, 0, this.hp);
+            return new Hero(nx, 0, MAXH, 0, x, y, this.hp);
         } else {
-            return new Hero(nx, 0, ny, 0, this.hp);
+            return new Hero(nx, 0, ny, 0, x, y, this.hp);
         }
     }
 
     public Item react( CharKey k ) {
         if ( k.isDownArrow() ) {
-            return new Hero(x, 0, y, 1, this.hp);
+            return new Hero(x, 0, y, 1, lastX, lastY, this.hp);
         } else if (k.isUpArrow()) {
-            return new Hero(x, 0, y, -1, this.hp);
+            return new Hero(x, 0, y, -1, lastX, lastY, this.hp);
         } else if (k.isRightArrow()) {
-            return new Hero(x, 1, y, 0, this.hp);
+            return new Hero(x, 1, y, 0, lastX, lastY, this.hp);
         } else if (k.isLeftArrow()) {
-            return new Hero(x, -1, y, 0, this.hp);
+            return new Hero(x, -1, y, 0, lastX, lastY, this.hp);
         } else {
             return this;
         }
@@ -254,13 +256,16 @@ class Hero implements Item {
         switch (type) {
             case 1:
                 // +1 point
-                answer = new Hero(p.getX(), 0, p.getY(), 0, this.hp);
+                answer = new Hero(p.getX(), 0, p.getY(), 0, lastX, lastY, this.hp);
+                break;
+            case 2:
+                answer = new Hero(lastX, 0, lastY, 0, lastX, lastY, this.hp);
                 break;
             case 3:
                 if (this.hp == 1) {
                     answer = new Dead(0);
                 } else {
-                    answer = new Hero(this.x, 0, this.y, 0, this.hp--);
+                    answer = new Hero(this.x, 0, this.y, 0, lastX, lastY, this.hp--);
                 }
                 break;
             default:
@@ -281,7 +286,7 @@ class Enemy implements Item {
     int dx;
     int dy;
     boolean isHit;
-    final int RADIUS = 5;
+    final int RADIUS = 4;
     
     static int MAXH = 22;
     static int MAXW = 73;
@@ -362,13 +367,21 @@ class Enemy implements Item {
     public Item collision(Item p) {
         int type = p.type();
         Item answer = this;
-        switch(type) {
-            case 0: answer = new Dead(1); break;
-            case 1: answer = new Enemy(p.getX(), 0, p.getY(), 0);
-            break;
-            case 3: answer = new Dead(1);
+        switch (type) {
+            case 0:
+                answer = new Dead(1);
                 break;
-            default: break;             
+            case 1:
+                answer = new Enemy(p.getX(), 0, p.getY(), 0);
+                break;
+            case 2:
+                answer = new Enemy(p.getX(), 0, p.getY(), 0);
+                break;
+            case 3:
+                answer = new Dead(1);
+                break;
+            default:
+                break;
         }
         return answer;
     }
@@ -389,7 +402,7 @@ class Cannon implements Item {
     static int MAXH = 22;
     static int MAXW = 73;
     static int MAX = MAXH;
-    final int RADIUS = 7;
+    final int RADIUS = 5;
 
     public Cannon() {
         this(10, 10);
