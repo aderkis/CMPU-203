@@ -21,10 +21,10 @@ public class Game1 {
         s.inkey();
         
         List<Item> items = new ArrayList<Item>();
-        items.add(new Hero());
+        //items.add(new Hero());
         items.add(new Enemy());
-        items.add(new Cannon());
-        items.add(new Missile());
+        //items.add(new Cannon());
+        //items.add(new Missile());
         Elements set = new Elements(items);
 
         while (true) {
@@ -61,10 +61,10 @@ interface Item {
     public int getX();
     public int getY();
     public int radius();
-    public void hit();
     public int type();
     public Item collision(Item p);
-    public boolean isDeadHuh();
+    public Item setDirection(int d);
+    public Item setPathLength(int p);
     
 }
 
@@ -112,7 +112,7 @@ class Elements {
             for (int j = 0; j < elements.size(); j++) { 
                 Item itemI = elements.get(i);
                 Item itemJ = elements.get(j);
-                if (!(itemI.isDeadHuh() || itemJ.isDeadHuh())) {
+                if (!(itemI.type()==-1 || itemJ.type()==-1)) {
                     if (i != j) {
                         if ((dist(itemI, itemJ) <= itemI.radius())
                                 || (dist(itemI, itemJ) <= itemJ.radius())) {
@@ -148,10 +148,10 @@ class Dead implements Item {
     public int getX() {return -1;}
     public int getY() {return -1;}
     public int radius() {return -1;}
-    public void hit() {}
     public int type() {return -1;}
     public Item collision(Item p) {return this;}
-    public boolean isDeadHuh() {return true;}
+    public Item setDirection(int d) {return this;}
+    public Item setPathLength(int p) {return this;}
     
 }
 
@@ -164,15 +164,14 @@ class Hero implements Item {
     int lastX;
     int lastY;
     int hp;
-    boolean isHit;
-    final int RADIUS = 4;
+    final int RADIUS = 2;
     
     static int MAXH = 22;
     static int MAXW = 73;
     static int MAX = MAXH;
 
     public Hero() {
-        this(MAXW/2, 0, MAXH/2, 0, 0, 0, 10);
+        this(MAXW/2, 0, MAXH/2, 0, MAXW/2, MAXH/2, 3);
     }
     private Hero( int x, int dx, int y, int dy, int lastX, int lastY, int hp) {
         this.x = x;
@@ -180,7 +179,6 @@ class Hero implements Item {
         this.y = y;
         this.dy = dy;
         this.hp = hp;
-        this.isHit = false;
     }
 
 
@@ -224,10 +222,7 @@ class Hero implements Item {
     }
 
     public void draw(ConsoleSystemInterface s) {
-        s.print(x, y + 0, "   +   ", s.CYAN);
-        s.print(x, y + 1, "  / \\ ", s.CYAN);
-        s.print(x, y + 2, "WARRIOR", s.CYAN);
-
+        s.print(x, y + 0, "HERO", s.CYAN);
     }
     
     public int getX() {
@@ -240,10 +235,6 @@ class Hero implements Item {
     
     public int radius() {
         return this.RADIUS;
-    }
-    
-    public void hit() {
-        this.isHit = true;
     }
     
     public int type() {
@@ -274,9 +265,9 @@ class Hero implements Item {
         return answer;
     }
     
-    public boolean isDeadHuh() {return false;}
-    
-    
+    public Item setDirection(int d) {return this;}
+    public Item setPathLength(int p) {return this;}
+        
 }
 
 class Enemy implements Item {
@@ -285,8 +276,9 @@ class Enemy implements Item {
     int y;
     int dx;
     int dy;
-    boolean isHit;
-    final int RADIUS = 4;
+    int direction;
+    int pathLength;
+    final int RADIUS = 2;
     
     static int MAXH = 22;
     static int MAXW = 73;
@@ -301,12 +293,13 @@ class Enemy implements Item {
         this.dx = dx;
         this.y = y;
         this.dy = dy;
-        this.isHit = false;
     }
 
     public Item tick () {
-        int nx = x + dx;
-        int ny = y + dy;
+        int nx = x+1;
+        int ny = y+1;
+        int ndx = dx-1;
+        int ndy = dy-1;
         if ( nx < 0 && ny < 0) {
             return new Enemy(0, 0, 0, 0);
         } else if (nx > MAXW && ny > MAXH) {
@@ -316,35 +309,59 @@ class Enemy implements Item {
         } else if (nx < 0 && ny > MAXH) {
             return new Enemy(0, 0, MAXH, 0);
         } else if (nx < 0) {
-            return new Enemy(0, 0, ny, 0);
+            return new Enemy(0, 0, ny, ndy);
         } else if (nx > MAXW) {
-            return new Enemy(MAXW, 0, ny, 0);
+            return new Enemy(MAXW, 0, ny, ndy);
         } else if (ny < 0) {
-            return new Enemy(nx, 0, 0, 0);
+            return new Enemy(nx, ndx, 0, 0);
         } else if (ny > MAXH) {
-            return new Enemy(nx, 0, MAXH, 0);
+            return new Enemy(nx, ndx, MAXH, 0);
         } else {
-            return new Enemy(nx, 0, ny, 0);
+            return new Enemy(nx, ndx, ny, ndy);
         }
     }
 
-    public Item react( CharKey k ) {
-        Random rng = new Random();
+    public Item react(CharKey k) {
+        Random randDir = new Random();
+        Random randLength = new Random();
+        int dir = randDir.nextInt(3);
+        int path = 3 + randLength.nextInt(2);
         Item answer = this;
-        int direction = rng.nextInt(3);
-        switch(direction) {
-            case 0: answer = new Enemy(x, 1, y, 0); break;
-            case 1: answer = new Enemy(x, -1, y, 0); break;
-            case 2: answer = new Enemy(x, 0, y, 1); break;
-            case 3: answer = new Enemy(x, 0, y, -1); break;             
+        if (this.pathLength == 0) {
+            switch (dir) {
+                case 0:
+                    answer = new Enemy(x, path, y, 0);
+                    break;
+                case 1:
+                    answer = new Enemy(x, -path, y, 0);
+                    break;
+                case 2:
+                    answer = new Enemy(x, 0, y, path);
+                    break;
+                case 3:
+                    answer = new Enemy(x, 0, y, -path);
+                    break;
+            }
         }
+        answer.setDirection(dir);
+        answer.setPathLength(path--);
+        return answer;
+    }
+    
+    public Item setDirection(int d) {
+        Enemy answer = this;
+        answer.direction = d;
+        return answer;
+    }
+    
+    public Item setPathLength(int p) {
+        Enemy answer = this;
+        answer.pathLength = p;
         return answer;
     }
 
     public void draw(ConsoleSystemInterface s) {
-        s.print(x, y + 0, " /\\ /\\ ", s.WHITE);
-        s.print(x, y + 1, " |  |  ", s.WHITE);
-        s.print(x, y + 2, "DIABLO", s.WHITE);
+        s.print(x, y + 0, "ENEMY", s.WHITE);
 
     }
     
@@ -358,10 +375,6 @@ class Enemy implements Item {
     
     public int radius() {
         return this.RADIUS;
-    }
-    
-    public void hit() {
-        this.isHit = true;
     }
     
     public Item collision(Item p) {
@@ -390,7 +403,6 @@ class Enemy implements Item {
         return 1;
     }
     
-    public boolean isDeadHuh() {return false;}
     
 }
 
@@ -402,7 +414,7 @@ class Cannon implements Item {
     static int MAXH = 22;
     static int MAXW = 73;
     static int MAX = MAXH;
-    final int RADIUS = 5;
+    final int RADIUS = 4;
 
     public Cannon() {
         this(10, 10);
@@ -447,16 +459,14 @@ class Cannon implements Item {
     public int radius() {
         return this.RADIUS;
     }
-    
-    public void hit() { }
   
     public int type() {
         return 2;
     }
     
     public Item collision(Item p) {return this;}
-    
-    public boolean isDeadHuh() {return false;}
+    public Item setDirection(int d) {return this;}
+    public Item setPathLength(int p) {return this;}
     
 }
 
@@ -466,7 +476,6 @@ class Missile implements Item {
     int y;
     int dx;
     int dy;
-    boolean isHit;
     final int RADIUS = 2;
     
     static int MAXH = 22;
@@ -474,22 +483,25 @@ class Missile implements Item {
     static int MAX = MAXH;
 
     public Missile() {
-        this(25, 0, 10, 0);
+        Random rng = new Random();
+        this.x = 0;
+        this.dx = 0;
+        this.y = rng.nextInt(MAXH);
+        this.dy = 0;     
     }
     public Missile( int x, int dx, int y, int dy ) {
         this.x = x;
         this.dx = dx;
         this.y = y;
         this.dy = dy;
-        this.isHit = false;
     }
 
     public Item tick () {
         int nx = x + dx + 3;
         int ny = y + dy;
-        Missile answer = new Missile(nx, 0, ny, 0);
+        Item answer = new Missile(nx, 0, ny, 0);
         if ( nx < 0 || ny < 0 || nx > MAXW || ny > MAXH) {
-            answer.isHit = true;
+            answer = new Dead(3);
         } 
         return answer;
     }
@@ -513,10 +525,6 @@ class Missile implements Item {
     
     public int radius() {
         return this.RADIUS;
-    }
-    
-    public void hit() {
-        this.isHit = true;
     }
     
     public int type() {
@@ -545,6 +553,7 @@ class Missile implements Item {
         return answer;
     }
     
-    public boolean isDeadHuh() {return false;}
+    public Item setDirection(int d) {return this;}
+    public Item setPathLength(int p) {return this;}
     
 }
