@@ -9,10 +9,12 @@ import java.awt.Rectangle;
 
 public class Game1 {
     
+    public int timer;
     public enum DemoMode { ANIMATION, SLIDESHOW, REACTIVE };
     static DemoMode mode = DemoMode.REACTIVE;
 
     public static void main(String[] args) throws InterruptedException {
+        
         ConsoleSystemInterface s =
             new WSwingConsoleInterface("game1 by jah", true);
 
@@ -25,9 +27,14 @@ public class Game1 {
         items.add(new Hero());
         items.add(new Enemy(40, 0, 15, 0, -1, 0));
         items.add(new Missile());
+        items.add(new Missile());
+        items.add(new Missile());
+        items.add(new Missile());
+        items.add(new Missile());
+        items.add(new Missile());
         Elements set = new Elements(items);
 
-        while (true) {
+        while (!set.isEndHuh()) {
             s.cls();
             set.draw(s);
             s.refresh();
@@ -40,6 +47,7 @@ public class Game1 {
                 // before continuing:
                 s.waitKey(CharKey.SPACE);
             } else if ( mode == DemoMode.REACTIVE ) {
+              
                 // If you want the player to press any key and/or you
                 // want to inspect the key before continuing
                 CharKey k = s.inkey();
@@ -48,6 +56,11 @@ public class Game1 {
             }
             set.tick();
         }
+        
+        s.cls();
+        s.print(0, 0, "GAME OVER", s.WHITE);
+        s.print(0, 1, "SCORE: " + set.score().toString(), s.YELLOW);
+        
     }
     
 
@@ -63,6 +76,9 @@ interface Item {
     public Rectangle bounds();
     public int type();
     public Item collision(Item p);
+    public boolean isEndHuh();
+    public Item end();
+    public boolean wasEnemy();
     
 }
 
@@ -120,6 +136,28 @@ class Elements {
         }
         return answer;
     }
+    
+    public boolean isEndHuh() {
+        boolean answer = false;
+        for(int i=0; i<this.elements.size(); i++) {
+            if(this.elements.get(i).isEndHuh()) {
+                answer = true;
+            }
+        }
+        return answer;
+    }
+    
+    public String score() {
+        Integer answer = 0;
+        for(int i=0; i<this.elements.size(); i++) {
+            if(this.elements.get(i).type()==-1) {
+                if(this.elements.get(i).wasEnemy()) {
+                    answer += 1;
+                }
+            }
+        }
+        return answer.toString();
+    }
 
 }
 
@@ -144,6 +182,12 @@ class Dead implements Item {
     public Rectangle bounds() {return new Rectangle();}
     public int type() {return -1;}
     public Item collision(Item p) {return this;}
+    public boolean isEndHuh() {return false;}
+    public Item end() {return this;}
+    
+    public boolean wasEnemy() {
+        return this.formerType==1;
+    }
     
 }
 
@@ -156,6 +200,7 @@ class Hero implements Item {
     int lastX;
     int lastY;
     int hp;
+    boolean isDead;
     final int RADIUS = 2;
     
     static int MAXH = 22;
@@ -171,13 +216,15 @@ class Hero implements Item {
         this.y = y;
         this.dy = dy;
         this.hp = hp;
+        this.isDead = false;
     }
 
-
-    public Item tick () {
+    public Item tick() {
         int nx = x + dx;
         int ny = y + dy;
-        if ( nx < 0 && ny < 0) {
+        if (this.hp == 0) {
+            return this.end();
+        } else if (nx < 0 && ny < 0) {
             return new Hero(0, 0, 0, 0, x, y, this.hp);
         } else if (nx > MAXW && ny > MAXH) {
             return new Hero(MAXW, 0, MAXH, 0, x, y, this.hp);
@@ -243,17 +290,26 @@ class Hero implements Item {
                 answer = new Hero(p.getX(), 0, p.getY(), 0, lastX, lastY, this.hp);
                 break;
             case 2:
-                if (this.hp == 1) {
-                    answer = new Dead(0);
-                } else {
-                    answer = new Hero(this.x, 0, this.y, 0, lastX, lastY, this.hp-1);
-                }
+                answer = new Hero(this.x, 0, this.y, 0, lastX, lastY, this.hp-1);
                 break;
             default:
                 break;
         }
         return answer;
     }
+    
+    public boolean isEndHuh() {
+        return this.isDead;
+        
+    }
+    
+    public Item end() {
+        Hero answer = this;
+        answer.isDead = true;
+        return answer;
+    }
+    
+    public boolean wasEnemy() {return false;}
         
 }
 
@@ -354,7 +410,7 @@ class Enemy implements Item {
     }
     
     public Rectangle bounds() {
-        return new Rectangle(x, y, 4, 2);
+        return new Rectangle(x, y, 3, 2);
     }
     
     public Item collision(Item p) {
@@ -379,6 +435,10 @@ class Enemy implements Item {
     public int type() {
         return 1;
     }
+    
+    public boolean isEndHuh() {return false;}
+    public Item end() {return this;}
+    public boolean wasEnemy() {return false;}
     
     
 }
@@ -413,7 +473,7 @@ class Missile implements Item {
         int nx = x + dx;
         Item answer = new Missile(nx, 0, y, 0);
         if ( nx < 0 || nx > MAXW) {
-            answer = new Dead(3);
+            answer = new Dead(2);
         } 
         return answer;
     }
@@ -449,18 +509,22 @@ class Missile implements Item {
         Item answer = this;
         switch (type) {
             case 0:
-                answer = new Dead(3);
+                answer = new Dead(2);
                 break;
             case 1:
-                answer = new Dead(3);
+                answer = new Dead(2);
                 break;
             case 2:
-                answer = new Dead(3);
+                answer = new Dead(2);
                 break;
             default:
                 break;
         }
         return answer;
     }
+    
+    public boolean isEndHuh() {return false;}
+    public Item end() {return this;}
+    public boolean wasEnemy() {return false;}
     
 }
