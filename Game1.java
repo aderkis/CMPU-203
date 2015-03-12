@@ -8,27 +8,36 @@ import java.util.concurrent.TimeUnit;
 import java.awt.Rectangle;
 
 public class Game1 {
-    
-    public enum DemoMode { ANIMATION, SLIDESHOW, REACTIVE };
+
+    public enum DemoMode {
+
+        ANIMATION, SLIDESHOW, REACTIVE
+    };
     static DemoMode mode = DemoMode.REACTIVE;
 
     public static void main(String[] args) throws InterruptedException {
+
+        List<Item> items = new ArrayList<Item>();
+        Elements set = new Elements(items);
+
+        ConsoleSystemInterface s
+                = new WSwingConsoleInterface("game1 by jah", true);
+
+        game(s, set);
+    }
+    
+    public static void game(ConsoleSystemInterface s, Elements set) {
         int missileTimer = 0;
         int enemyTimer = 0;
         Random rng = new Random();
-        
-        ConsoleSystemInterface s =
-            new WSwingConsoleInterface("game1 by jah", true);
 
         s.cls();
         s.print(1, 0, "prepare thyself, then press any key", s.RED);
         s.refresh();
         s.inkey();
         
-        List<Item> items = new ArrayList<Item>();
-        Elements set = new Elements(items);
         set.add(new Hero());
-
+        
         while (!set.isEndHuh()) {
             if(missileTimer==0) {
                 set.add(new Missile());
@@ -45,7 +54,7 @@ public class Game1 {
             if ( mode == DemoMode.ANIMATION ) {
                 // If you want an animation, then ignore the input and
                 // sleep before continuing
-                TimeUnit.MILLISECONDS.sleep(16 * 4);
+                //TimeUnit.MILLISECONDS.sleep(16 * 4);
             } else if ( mode == DemoMode.SLIDESHOW ) {
                 // If you want the player to press a specific key
                 // before continuing:
@@ -62,12 +71,24 @@ public class Game1 {
             missileTimer = missileTimer - 1;
             enemyTimer = enemyTimer - 1;
             set.tick();            
-        }       
-       
+        }
+        
         s.cls();
         s.print(0, 0, "GAME OVER", s.WHITE);
         s.print(0, 1, "SCORE: " + set.score(), s.YELLOW);
-        
+        s.print(0, 10, "PRESS UP TO PLAY AGAIN, DOWN TO QUIT", s.BLUE);
+        CharKey u = s.inkey();
+        s.refresh();
+        if (u.isUpArrow()) {
+            ConsoleSystemInterface e
+                    = new WSwingConsoleInterface("game1 by jah", true);
+            List<Item> newItems = new ArrayList<Item>();
+            Elements newSet = new Elements(newItems);
+            game(e, newSet);      
+        }
+        if (u.isDownArrow()) {
+            System.exit(0);
+        }
     }
     
 
