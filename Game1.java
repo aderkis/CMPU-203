@@ -21,7 +21,7 @@ public class Game1 {
             new WSwingConsoleInterface("game1 by jah", true);
 
         s.cls();
-        s.print(1, 0, "prepare thyself", s.RED);
+        s.print(1, 0, "prepare thyself, then press any key", s.RED);
         s.refresh();
         s.inkey();
         
@@ -58,12 +58,12 @@ public class Game1 {
                 set.react(k);
                 set.collisions();
             }
+            s.refresh();
             missileTimer = missileTimer - 1;
             enemyTimer = enemyTimer - 1;
-            set.tick();
-            
-        }
-        
+            set.tick();            
+        }       
+       
         s.cls();
         s.print(0, 0, "GAME OVER", s.WHITE);
         s.print(0, 1, "SCORE: " + set.score(), s.YELLOW);
@@ -234,7 +234,7 @@ class Hero implements Item {
     public Item tick() {
         int nx = x + dx;
         int ny = y + dy;
-        if (this.hp == 0) {
+        if (this.hp <= 0) {
             return this.end();
         } else if (nx < 0 && ny < 0) {
             return new Hero(0, 0, 0, 0, x, y, this.hp);
