@@ -9,11 +9,13 @@ import java.awt.Rectangle;
 
 public class Game1 {
     
-    public int timer;
     public enum DemoMode { ANIMATION, SLIDESHOW, REACTIVE };
     static DemoMode mode = DemoMode.REACTIVE;
 
     public static void main(String[] args) throws InterruptedException {
+        int missileTimer = 0;
+        int enemyTimer = 0;
+        Random rng = new Random();
         
         ConsoleSystemInterface s =
             new WSwingConsoleInterface("game1 by jah", true);
@@ -24,19 +26,21 @@ public class Game1 {
         s.inkey();
         
         List<Item> items = new ArrayList<Item>();
-        items.add(new Hero());
-        items.add(new Enemy(40, 0, 15, 0, -1, 0));
-        items.add(new Missile());
-        items.add(new Missile());
-        items.add(new Missile());
-        items.add(new Missile());
-        items.add(new Missile());
-        items.add(new Missile());
         Elements set = new Elements(items);
+        set.add(new Hero());
 
         while (!set.isEndHuh()) {
-            s.cls();
+            if(missileTimer==0) {
+                set.add(new Missile());
+                missileTimer = 1+rng.nextInt(5);
+            }
+            if(enemyTimer==0) {
+                set.add(new Enemy());
+                enemyTimer = 1+rng.nextInt(10);
+            }
+            s.cls();           
             set.draw(s);
+            s.print(0, 24, "SCORE: " + set.score(), s.YELLOW);
             s.refresh();
             if ( mode == DemoMode.ANIMATION ) {
                 // If you want an animation, then ignore the input and
@@ -54,12 +58,15 @@ public class Game1 {
                 set.react(k);
                 set.collisions();
             }
+            missileTimer = missileTimer - 1;
+            enemyTimer = enemyTimer - 1;
             set.tick();
+            
         }
         
         s.cls();
         s.print(0, 0, "GAME OVER", s.WHITE);
-        s.print(0, 1, "SCORE: " + set.score().toString(), s.YELLOW);
+        s.print(0, 1, "SCORE: " + set.score(), s.YELLOW);
         
     }
     
@@ -201,14 +208,19 @@ class Hero implements Item {
     int lastY;
     int hp;
     boolean isDead;
-    final int RADIUS = 2;
     
-    static int MAXH = 22;
-    static int MAXW = 73;
-    static int MAX = MAXH;
+    static int MAXH = 23;
+    static int MAXW = 76;
 
     public Hero() {
-        this(MAXW/2, 0, MAXH/2, 0, MAXW/2, MAXH/2, 3);
+        Random rng = new Random();
+        this.x = rng.nextInt(MAXW);
+        this.dx = 0;
+        this.y = rng.nextInt(MAXH);
+        this.dy = 0;
+        this.hp = 3;
+        this.isDead = false;
+        
     }
     private Hero( int x, int dx, int y, int dy, int lastX, int lastY, int hp) {
         this.x = x;
@@ -261,8 +273,20 @@ class Hero implements Item {
     }
 
     public void draw(ConsoleSystemInterface s) {
+        String answer = "";
+        switch(hp) {
+            case 2:
+                answer += ".";
+                break;
+            case 3:
+                answer += "!";
+                break;
+            default:
+                answer += " ";
+                break;
+        }
         s.print(x, y + 0, "GOOD", s.CYAN);
-        s.print(x, y + 1, "GUY ", s.CYAN);
+        s.print(x, y + 1, "GUY"+answer, s.CYAN);
     }
     
     public int getX() {
@@ -321,14 +345,16 @@ class Enemy implements Item {
     int dy;
     int direction;
     int pathLength;
-    final int RADIUS = 2;
     
-    static int MAXH = 22;
-    static int MAXW = 73;
-    static int MAX = MAXH;
+    static int MAXH = 23;
+    static int MAXW = 77;
 
     public Enemy() {
-        this(0, 0, 0, 0);
+        Random rng = new Random();
+        this.x = rng.nextInt(MAXW);
+        this.dx = 0;
+        this.y = rng.nextInt(MAXH);
+        this.dy = 0;
     }
     
     private Enemy( int x, int dx, int y, int dy ) {
@@ -449,29 +475,47 @@ class Missile implements Item {
     int y;
     int dx;
     int dy;
-    final int RADIUS = 2;
+    int dir;
     
-    static int MAXH = 22;
-    static int MAXW = 73;
-    static int MAX = MAXH;
+    static int MAXH = 24;
+    static int MAXW = 76;
 
     public Missile() {
         Random rng = new Random();
-        this.x = 0;
+        int newDir = rng.nextInt(2);
+        switch(newDir) {
+            case 0:
+                this.x = 0;
+                break;
+            case 1:
+                this.x = MAXW;
+                break;
+        }
         this.dx = 0;
         this.y = rng.nextInt(MAXH);
-        this.dy = 0;     
+        this.dy = 0;
+        this.dir = newDir;
     }
-    public Missile( int x, int dx, int y, int dy ) {
+    
+    public Missile( int x, int dx, int y, int dy, int dir ) {
         this.x = x;
         this.dx = dx;
         this.y = y;
         this.dy = dy;
+        this.dir = dir;
     }
 
     public Item tick () {
-        int nx = x + dx;
-        Item answer = new Missile(nx, 0, y, 0);
+        int nx = x;
+        switch(dir) {
+            case 0: 
+                nx = nx+dx;
+                break;
+            case 1:
+                nx = nx-dx;
+                break;
+        }
+        Item answer = new Missile(nx, 0, y, 0, dir);
         if ( nx < 0 || nx > MAXW) {
             answer = new Dead(2);
         } 
@@ -528,3 +572,5 @@ class Missile implements Item {
     public boolean wasEnemy() {return false;}
     
 }
+
+
