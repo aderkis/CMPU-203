@@ -5,6 +5,7 @@ import net.slashie.libjcsi.CharKey;
 import java.util.*;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import java.awt.Rectangle;
 
 public class Game1 {
     
@@ -23,7 +24,6 @@ public class Game1 {
         List<Item> items = new ArrayList<Item>();
         items.add(new Hero());
         items.add(new Enemy(40, 0, 15, 0, -1, 0));
-        //items.add(new Cannon());
         items.add(new Missile());
         Elements set = new Elements(items);
 
@@ -60,7 +60,7 @@ interface Item {
     public void draw(ConsoleSystemInterface s);
     public int getX();
     public int getY();
-    public int radius();
+    public Rectangle bounds();
     public int type();
     public Item collision(Item p);
     
@@ -100,19 +100,17 @@ class Elements {
         }
     }
     
-    public static int dist(Item p, Item q) {
-        return (int)Math.sqrt((p.getX()-q.getX())^2 + (p.getY()-q.getY())^2);
-    }
-    
     public Elements collisions() {
         Elements answer = this;
         for (int i = 0; i < elements.size(); i++) {
             for (int j = 0; j < elements.size(); j++) { 
                 Item itemI = elements.get(i);
                 Item itemJ = elements.get(j);
+                Rectangle iBounds = itemI.bounds();
+                Rectangle jBounds = itemJ.bounds();
                 if (!(itemI.type()==-1 || itemJ.type()==-1)) {
                     if (i != j) {
-                        if ((dist(itemI, itemJ) <= Math.abs(itemI.radius()-itemJ.radius()))) {
+                        if (iBounds.intersects(jBounds)) {
                             answer.elements.set(i, itemI.collision(itemJ));
                             answer.elements.set(j, itemJ.collision(itemI));
                         }
@@ -129,8 +127,7 @@ class Dead implements Item {
     
     //0 is Hero
     //1 is Enemy
-    //2 is Cannon
-    //3 is Missile
+    //2 is Missile
     //only intended to be Enemies and Missiles because if a Hero dies, game is over
     
     int formerType;
@@ -144,7 +141,7 @@ class Dead implements Item {
     public void draw(ConsoleSystemInterface s) {}
     public int getX() {return -1;}
     public int getY() {return -1;}
-    public int radius() {return -1;}
+    public Rectangle bounds() {return new Rectangle();}
     public int type() {return -1;}
     public Item collision(Item p) {return this;}
     
@@ -217,7 +214,8 @@ class Hero implements Item {
     }
 
     public void draw(ConsoleSystemInterface s) {
-        s.print(x, y + 0, "HERO", s.CYAN);
+        s.print(x, y + 0, "GOOD", s.CYAN);
+        s.print(x, y + 1, "GUY ", s.CYAN);
     }
     
     public int getX() {
@@ -228,8 +226,8 @@ class Hero implements Item {
         return this.y;
     }
     
-    public int radius() {
-        return this.RADIUS;
+    public Rectangle bounds() {
+        return new Rectangle(x, y, 4, 2);
     }
     
     public int type() {
@@ -245,13 +243,10 @@ class Hero implements Item {
                 answer = new Hero(p.getX(), 0, p.getY(), 0, lastX, lastY, this.hp);
                 break;
             case 2:
-                answer = new Hero(lastX, 0, lastY, 0, lastX, lastY, this.hp);
-                break;
-            case 3:
                 if (this.hp == 1) {
                     answer = new Dead(0);
                 } else {
-                    answer = new Hero(this.x, 0, this.y, 0, lastX, lastY, this.hp--);
+                    answer = new Hero(this.x, 0, this.y, 0, lastX, lastY, this.hp-1);
                 }
                 break;
             default:
@@ -337,9 +332,6 @@ class Enemy implements Item {
                 answer = new Enemy(x, -1, y, 0, answer.direction, answer.pathLength-1);
                 break;
             case 2:
-                answer = new Enemy(x, 0, y, 1, answer.direction, answer.pathLength-1);
-                break;
-            case 3:
                 answer = new Enemy(x, 0, y, -1, answer.direction, answer.pathLength-1);
                 break;
         }
@@ -348,7 +340,8 @@ class Enemy implements Item {
     
 
     public void draw(ConsoleSystemInterface s) {
-        s.print(x, y + 0, "ENEMY", s.WHITE);
+        s.print(x, y + 0, "BAD", s.WHITE);
+        s.print(x, y + 1, "GUY", s.WHITE);
 
     }
     
@@ -360,8 +353,8 @@ class Enemy implements Item {
         return this.y;
     }
     
-    public int radius() {
-        return this.RADIUS;
+    public Rectangle bounds() {
+        return new Rectangle(x, y, 4, 2);
     }
     
     public Item collision(Item p) {
@@ -375,9 +368,6 @@ class Enemy implements Item {
                 answer = new Enemy(p.getX(), 0, p.getY(), 0);
                 break;
             case 2:
-                answer = new Enemy(p.getX(), 0, p.getY(), 0);
-                break;
-            case 3:
                 answer = new Dead(1);
                 break;
             default:
@@ -390,68 +380,6 @@ class Enemy implements Item {
         return 1;
     }
     
-    
-}
-
-class Cannon implements Item {
-    
-    int x;
-    int y;
-    
-    static int MAXH = 22;
-    static int MAXW = 73;
-    static int MAX = MAXH;
-    final int RADIUS = 4;
-
-    public Cannon() {
-        this(10, 10);
-    }
-    private Cannon( int x, int y ) {
-        this.x = x;
-        this.y = y;
-    }
-
-    public Item tick () {
-        return this;
-    }
-
-    public Item react( CharKey k ) {
-        return this;
-
-    }
-    
-    public Item shoot() {
-        return new Missile(x, 0, y, 0);
-    }
-
-    public void draw ( ConsoleSystemInterface s ) {
-        s.print(x,  y+0, "  ______ ", s.GRAY);
-        s.print(x,  y+1, " /      \\ ", s.GRAY);
-        s.print(x,  y+2, "|       |", s.GRAY);
-        s.print(x,  y+3, "|       |", s.GRAY);
-        s.print(x,  y+4, "\\_______/", s.GRAY);
-        
-        
-    }
-    
-    
-    public int getX() {
-        return this.x;
-    }
-    
-    public int getY() {
-        return this.y;
-    }
-    
-    public int radius() {
-        return this.RADIUS;
-    }
-  
-    public int type() {
-        return 2;
-    }
-    
-    public Item collision(Item p) {return this;}
     
 }
 
@@ -482,18 +410,18 @@ class Missile implements Item {
     }
 
     public Item tick () {
-        int nx = x + dx + 3;
-        int ny = y + dy;
-        Item answer = new Missile(nx, 0, ny, 0);
-        if ( nx < 0 || ny < 0 || nx > MAXW || ny > MAXH) {
+        int nx = x + dx;
+        Item answer = new Missile(nx, 0, y, 0);
+        if ( nx < 0 || nx > MAXW) {
             answer = new Dead(3);
         } 
         return answer;
     }
 
     public Item react( CharKey k ) {
-        return this;
-
+        Missile answer = this;
+        answer.dx = 3;
+        return answer;
     }
 
     public void draw(ConsoleSystemInterface s) {
@@ -508,12 +436,12 @@ class Missile implements Item {
         return this.y;
     }
     
-    public int radius() {
-        return this.RADIUS;
+    public Rectangle bounds() {
+        return new Rectangle(x, y, 4, 1);
     }
     
     public int type() {
-        return 3;
+        return 2;
     }
     
     public Item collision(Item p) {
@@ -527,9 +455,6 @@ class Missile implements Item {
                 answer = new Dead(3);
                 break;
             case 2:
-                answer = new Dead(3);
-                break;
-            case 3:
                 answer = new Dead(3);
                 break;
             default:
