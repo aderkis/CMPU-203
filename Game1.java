@@ -9,7 +9,7 @@ import java.awt.Rectangle;
 
 public class Game1 {
     
-    static boolean TEST = true;
+    static boolean TEST = false;
 
     public static void main(String[] args) throws InterruptedException {
         
@@ -73,7 +73,13 @@ public class Game1 {
             enemyTimer = enemyTimer - 1;
             set.tick();
         }
+        
+        resetPrompt(set, s);
 
+        
+    }
+    
+    static void resetPrompt(Elements set, ConsoleSystemInterface s) {
         s.cls();
         s.print(0, 0, "GAME OVER", s.WHITE);
         s.print(0, 1, "SCORE: " + set.score(), s.YELLOW);
@@ -87,10 +93,12 @@ public class Game1 {
             List<Item> newItems = new ArrayList<>();
             Elements newSet = new Elements(newItems);
             game(e, newSet);
-        }
-        if (u.isDownArrow()) {
+        } else if (u.isDownArrow()) {
             System.exit(0);
+        } else {
+            resetPrompt(set, s);
         }
+
     }
 
 }
@@ -156,9 +164,9 @@ class Test {
     
     public static Integer test5() {
         //tests boundaries in Hero tick()
-        Hero test = new Hero(76, 1, 23, 1, 3);
+        Hero test = new Hero(77, 1, 23, 1, 3);
         Item answer = test.tick();
-        if(answer.getX()==76&&answer.getY()==23) {
+        if(answer.getX()==77&&answer.getY()==23) {
             return 0;
         } else {
             return 1;
@@ -213,9 +221,9 @@ class Test {
     public static Integer test8() {
         //tests boundaries in Enemy tick()
         //last 2 arguments for constructed test Enemy do not matter in this test
-        Enemy test = new Enemy(77, 1, 23, 1, 0, 1);
+        Enemy test = new Enemy(77, 1, 24, 1, 0, 1);
         Item answer = test.tick();
-        if(answer.getX()==77&&answer.getY()==23) {
+        if(answer.getX()==77&&answer.getY()==24) {
             return 0;
         } else {
             return 1;
@@ -388,7 +396,7 @@ class Hero implements Item {
     boolean isDead;
 
     static int MAXH = 23;
-    static int MAXW = 76;
+    static int MAXW = 77;
 
     public Hero() {
         Random rng = new Random();
@@ -455,17 +463,17 @@ class Hero implements Item {
         String answer = "";
         switch (hp) {
             case 2:
-                answer += ".";
+                answer += "!!";
                 break;
             case 3:
-                answer += "!";
+                answer += "!!!";
                 break;
             default:
-                answer += " ";
+                answer += " ! ";
                 break;
         }
-        s.print(x, y + 0, "GOOD", s.CYAN);
-        s.print(x, y + 1, "GUY" + answer, s.CYAN);
+        s.print(x, y + 0, "SJW", s.CYAN);
+        s.print(x, y + 1, answer, s.CYAN);
     }
 
     public int getX() {
@@ -477,7 +485,7 @@ class Hero implements Item {
     }
 
     public Rectangle bounds() {
-        return new Rectangle(x, y, 4, 2);
+        return new Rectangle(x, y, 3, 2);
     }
 
     public int type() {
@@ -521,7 +529,7 @@ class Enemy implements Item {
     int direction;
     int pathLength;
 
-    static int MAXH = 23;
+    static int MAXH = 24;
     static int MAXW = 77;
 
     public Enemy() {
@@ -592,8 +600,7 @@ class Enemy implements Item {
     }
 
     public void draw(ConsoleSystemInterface s) {
-        s.print(x, y + 0, "BAD", s.WHITE);
-        s.print(x, y + 1, "GUY", s.WHITE);
+        s.print(x, y + 0, "MRA", s.WHITE);
 
     }
 
@@ -606,7 +613,7 @@ class Enemy implements Item {
     }
 
     public Rectangle bounds() {
-        return new Rectangle(x, y, 3, 2);
+        return new Rectangle(x, y, 3, 1);
     }
 
     public Item collision(Item p) {
