@@ -3,7 +3,6 @@ package data2;
 public abstract class MultiSet<D extends Comparable> implements Sequenced<D> {
     
     public int count;
-    public int height;
 
     public int multiplicity() {
         return this.count;
