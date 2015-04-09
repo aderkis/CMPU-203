@@ -11,7 +11,6 @@ public class Branch<D extends Comparable> extends MultiSet<D> {
         this.count = 1;
         this.left = new Leaf();
         this.right = new Leaf();
-        this.height = 1;
     }
     
     public Branch(D key, int count) {
@@ -19,7 +18,6 @@ public class Branch<D extends Comparable> extends MultiSet<D> {
         this.count = count;
         this.left = new Leaf();
         this.right = new Leaf();
-        this.height = 1;
     }
     
 
@@ -28,7 +26,6 @@ public class Branch<D extends Comparable> extends MultiSet<D> {
         this.count = 1;
         this.left = left;
         this.right = right;
-        this.height = 1+left.height()+right.height();
     }
     
     public Branch(MultiSet<D> left, D key, int count, MultiSet<D> right) {
@@ -36,7 +33,6 @@ public class Branch<D extends Comparable> extends MultiSet<D> {
         this.count = count;
         this.left = left;
         this.right = right;
-        this.height = 1+left.height()+right.height();
     }
     
     public int multiplicity(D elt) {
@@ -50,7 +46,11 @@ public class Branch<D extends Comparable> extends MultiSet<D> {
     }
     
     public int height() {
-        return height;
+        if(right.height() > left.height()) {
+            return 1+right.height();
+        } else {
+            return 1+left.height();
+        }
     }
     
     // cardinality counts the key plus the number of other keys in the set
@@ -141,7 +141,6 @@ public class Branch<D extends Comparable> extends MultiSet<D> {
     
     // recursively combines sets with both children of the branch and the key
     public MultiSet<D> union(MultiSet<D> set) {
-        // probably need to re-do entirely
         MultiSet<D> answer = set.union(left).union(right);
         for(int i=0; i<count; i++) {
             answer = answer.add(key);
@@ -185,14 +184,17 @@ public class Branch<D extends Comparable> extends MultiSet<D> {
     }
     
     // 0: balanced
-    // 1: left => 2
-    // 2: right => 2
+    // 1: left = 2
+    // 2: right = 2
+    // 3: left > 2 or right > 2
     public int balanceCase() {
         int diff = left.height()-right.height();
-        if(diff>=2) {
+        if(diff==2) {
             return 1;
-        } else if(diff<=-2) {
+        } else if(diff==-2) {
             return 2;
+        } else if((diff>2)||(diff<-2)) {
+            return 3;
         } else {
             return 0;
         }
@@ -204,25 +206,11 @@ public class Branch<D extends Comparable> extends MultiSet<D> {
             default:
                 return answer;
             case 1:
-                Branch<D> tempLeft = (Branch) left;
-                // left-left
-                if ((!tempLeft.left.isEmptyHuh()) && tempLeft.right.isEmptyHuh()) {
-                    answer = answer.rotateRight();
-                // left-right
-                } else if ((!tempLeft.right.isEmptyHuh()) && tempLeft.left.isEmptyHuh()) {
-                    answer = new Branch(left.rotateLeft(), key, count, right.balance());
-                }
-                return answer.balance();
+                return answer.rotateRight();
             case 2:
-                Branch<D> tempRight = (Branch) right;
-                // right-right
-                if ((!tempRight.right.isEmptyHuh()) && tempRight.left.isEmptyHuh()) {
-                    answer = answer.rotateLeft();
-                // right-left
-                } else if ((!tempRight.left.isEmptyHuh()) && tempRight.right.isEmptyHuh()) {
-                    answer = new Branch(left.balance(), key, count, right.rotateRight());
-                }
-                return answer.balance();
+                return answer.rotateLeft();
+            case 3:
+                return new Branch(left.balance(), key, count, right.balance());
         }
     }
     
@@ -241,8 +229,12 @@ public class Branch<D extends Comparable> extends MultiSet<D> {
     }
     
     public String toString() {
-        return left.toString() + " " + key.toString()
-                + " " + right.toString();
+        String answer = left.toString();
+        for(int i=0; i<count; i++) {
+            answer += key.toString() + " ";
+        }
+        answer += right.toString();
+        return answer;
     }
     
     
