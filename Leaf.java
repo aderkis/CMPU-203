@@ -2,11 +2,17 @@ package data2;
 
 public class Leaf<D extends Comparable> extends MultiSet<D> {
     
-    public Leaf() {}
+    public Leaf() {
+        this.count = 0;
+        this.height = 0;
+    }
     
-    // creates a new Leaf object representing an empty set
-    public static MultiSet empty() {
-        return new Leaf();
+    public int multiplicity(D elt) {
+        return 0;
+    }
+    
+    public int height() {
+        return 0;
     }
     
     // 0 for an empty set
@@ -29,8 +35,20 @@ public class Leaf<D extends Comparable> extends MultiSet<D> {
         return new Branch(this, elt, this);
     }
     
+    public MultiSet<D> add(D elt, int count) {
+        return new Branch(this, elt, count, this);
+    }
+    
     // removing from an empty set results in the empty set
     public MultiSet<D> remove(D elt) {
+        return this;
+    }
+    
+    public MultiSet<D> remove(D elt, int count) {
+        return this;
+    }
+    
+    public MultiSet<D> removeAll(D elt) {
         return this;
     }
     
@@ -59,4 +77,23 @@ public class Leaf<D extends Comparable> extends MultiSet<D> {
         return true;
     }
     
+    public MultiSet<D> balance() {
+        return this;
+    }
+    
+    public MultiSet<D> rotateLeft() {
+        return this;
+    }
+    
+    public MultiSet<D> rotateRight() {
+        return this;
+    }
+    
+    public Sequence<D> seq() {
+        return new SeqLeaf();
+    }
+    
+    public String toString() {
+        return "";
+    }
 }
