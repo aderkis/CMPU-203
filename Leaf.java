@@ -4,7 +4,6 @@ public class Leaf<D extends Comparable> extends MultiSet<D> {
     
     public Leaf() {
         this.count = 0;
-        this.height = 0;
     }
     
     public int multiplicity(D elt) {
