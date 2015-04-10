@@ -177,7 +177,7 @@ public abstract class MultiSet<D extends Comparable> implements Sequenced<D> {
      * Returns the original set rotated once to the left:
      *  A            B
      *   \          / \
-     *    B   >>>  A   C
+     *    B   to   A   C
      *     \
      *      C
      * 
@@ -189,7 +189,7 @@ public abstract class MultiSet<D extends Comparable> implements Sequenced<D> {
      * Returns the original set rotated once to the right:
      *      C          B
      *     /          / \
-     *    B   >>>    A   C
+     *    B    to    A   C
      *   /
      *  A
      * 
