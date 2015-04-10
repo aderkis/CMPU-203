@@ -36,13 +36,17 @@ public class Branch<D extends Comparable> extends MultiSet<D> {
     }
     
     public int multiplicity(D elt) {
-        if(key == elt) {
-            return this.count;
-        } else if(key.compareTo(elt) > 0) {
+        if(elt.compareTo(key) < 0) {
             return left.multiplicity(elt);
-        } else {
+
+        } else if(elt.compareTo(key) > 0) {
             return right.multiplicity(elt);
+
+        } else {
+            return count;
+
         }
+
     }
     
     public int height() {
@@ -65,15 +69,7 @@ public class Branch<D extends Comparable> extends MultiSet<D> {
     
     // searches from key outward until key equals elt, returns false otherwise
     public boolean member(D elt) {
-        boolean answer = false;
-        if(key == elt) {
-            answer = true;
-        } else if(key.compareTo(elt) > 0) {
-            answer = left.member(elt);
-        } else if(key.compareTo(elt) < 0) {
-            answer = right.member(elt);
-        }
-        return answer;
+        return this.multiplicity(elt)>0;
     }
     
     // places the new key in the correct spot in the tree, returning the original
@@ -103,7 +99,7 @@ public class Branch<D extends Comparable> extends MultiSet<D> {
     //  branches until match is ultimately found or not found
     public MultiSet<D> remove(D elt) {
         Branch<D> answer = this;
-        if(elt==key) {
+        if(elt.compareTo(key)==0) {
             if(count>1) {
                 answer = new Branch(left, key, count-1, right);
             } else {
@@ -119,23 +115,16 @@ public class Branch<D extends Comparable> extends MultiSet<D> {
 
     public MultiSet<D> remove(D elt, int count) {
         MultiSet<D> answer = this;
-        int numRemoves = answer.count;
-        if (count >= numRemoves) {
-            answer = answer.removeAll(elt);
-        } else {
-            for (int i = 0; i < count; i++) {
-                answer = answer.remove(elt);
-            }
+        for (int i = 0; i < count; i++) {
+            answer = answer.remove(elt);
         }
         return answer;
     }
     
     public MultiSet<D> removeAll(D elt) {
         MultiSet<D> answer = this;
-        int numRemoves = answer.count;
-        for(int i=0; i<numRemoves; i++) {
-            answer = answer.remove(elt);
-        }
+        int numRemoves = answer.multiplicity(elt);
+        answer = answer.remove(elt, numRemoves);
         return answer;
     }
     
@@ -151,24 +140,23 @@ public class Branch<D extends Comparable> extends MultiSet<D> {
     // includes the key if it is in the set, excludes it otherwise
     public MultiSet<D> inter(MultiSet<D> set) {
         if(set.member(key)) {
-            return new Branch(left.inter(set), key, min(this.count, set.count), right.inter(set));
+            return new Branch(left.inter(set), key, Math.min(this.count, set.multiplicity(key)), right.inter(set));
         } else {
-            return left.union(right).inter(set);
-        }
-    }
-    
-    //helper method for intersection
-    private static int min(int a, int b) {
-        if(a>b) {
-            return b;
-        } else {
-            return a;
+            return left.inter(set).union(right.inter(set));
         }
     }
     
     // removes key from both sets and recursively finds the difference between those
-    public MultiSet diff(MultiSet<D> set) {
-        return this.remove(key, count).diff(set.remove(key, count));
+    public MultiSet<D> diff(MultiSet<D> set) {
+        MultiSet<D> answer = this;
+        if(set.member(key)) {
+            answer = set.remove(key, this.multiplicity());
+            answer = left.union(right).diff(answer);
+        } else {
+            answer = left.union(right).diff(set);
+        }
+        return answer;
+
     }
     
     // sets are equal iff they are subsets of each other
@@ -178,7 +166,7 @@ public class Branch<D extends Comparable> extends MultiSet<D> {
     
     // if key is a member of the set, return whether its children are subsets of the set
     public boolean subset(MultiSet<D> set) {
-        if(set.member(key) && this.count <= set.count) {
+        if(this.count <= set.multiplicity(key)) {
             return this.left.subset(set) && this.right.subset(set);
         } else {return false;}
     }
