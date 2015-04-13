@@ -12,8 +12,8 @@ import javalib.worldimages.WorldImage;
 
 public class Battle extends World {
     
-    public Player player;
-    public Enemy enemy;
+    public Rapper player;
+    public Rapper enemy;
     public Integer playerHP;
     public Integer enemyHP;
     public int numLyricalAttacks;
@@ -23,6 +23,7 @@ public class Battle extends World {
     public List<Attack> validPlayerAttacks;
     public List<Attack> validEnemyAttacks;
     public AttackList menu;
+    public Everyone set;
     public Random rng = new Random();
             
     public static Attack skip = new Attack("Skip turn", 0, 0, 0);
@@ -47,17 +48,18 @@ public class Battle extends World {
     public static Attack expose = new Attack("Expose flaw", 1, 40, 20);
     public static Attack getPersonal = new Attack("Get personal", 1, 50, 25);
     
-    public Battle(Player player, Enemy enemy) {
+    public Battle(Rapper player, Rapper enemy, Everyone set) {
         this.player = player;
         this.player.mana = player.flow;
         this.enemy = enemy;
-        this.enemy.mana = enemy.flow*5;
-        this.playerHP = player.hype*5;
-        this.enemyHP = 50;
+        this.enemy.mana = enemy.flow;
+        this.playerHP = ((Player)player).hype*5;
+        this.enemyHP = 25;
         this.numLyricalAttacks = 0;
         this.numPresenceAttacks = 0;
         this.isPlayerTurn = true;
         this.endBattle = false;
+        this.set = set;
         lyricAttacks.add(skip);
         lyricAttacks.add(endOfLineRhyme);
         lyricAttacks.add(simile);
@@ -94,14 +96,27 @@ public class Battle extends World {
                     answer = answer.enemyAttack(answer.player, randAttack);
                 }
             }
-        } else if (answer.playerWonHuh()) {
+        } else {
+            int attrib;
             if (numLyricalAttacks >= numPresenceAttacks) {
-                answer.player.win(answer.xp(), 0);
-                answer.endBattle = true;
+                attrib = 0;
             } else {
-                answer.player.win(answer.xp(), 1);
-                answer.endBattle = true;
+                attrib = 1;
             }
+            Everyone newSet = answer.set;
+            if (answer.playerWonHuh()) {
+                answer.endBattle = true;
+                newSet = newSet.remove(enemy);
+                newSet.player = newSet.player.win(answer.xp(), attrib);
+
+            } else {
+                answer.endBattle = true;
+                newSet.player = newSet.player.loss(answer.xp(), attrib);
+
+            }
+            World afterBattle = new Overworld(newSet);
+            this.worldEnds();
+            return afterBattle;
         }
         return answer;
     }
