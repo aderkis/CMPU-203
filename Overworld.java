@@ -9,32 +9,38 @@ import javalib.worldimages.WorldImage;
 
 public class Overworld extends World {
     
-    public Rapper player;
     public Everyone set;
     
-    public Overworld(Player player, Everyone set) {
-        this.player = player;
+    public Overworld(Everyone set) {
         this.set = set;
     }
     
     public World onTick() {
         Overworld answer = this;
-        for (Rapper r : answer.set.rappers) {
-            r = r.move("");
-            
+        if (!set.battle) {       
+            for (Rapper r : answer.set.rappers) {
+                r = r.move("that dope");
+            }
+            answer.set = answer.set.collisions();
+            return answer;
+        } else {
+           return new Battle((Player) set.player, (Enemy)set.rappers.get(0), set);
         }
-        return answer;
+
     }
 
-    public World onKeyEvent(String key) {
+    public World onKeyEvent(String key) {       
         Overworld answer = this;
-        answer.player = answer.player.move(key);
+        if ("d".equals(key)) {
+            int d = answer.set.player.dist(answer.set.rappers.get(0));
+            System.out.println("Distance: " + d);
+        }
+        answer.set.player = answer.set.player.move(key);
         return this;
     }
     
     public WorldImage makeImage() {
-        WorldImage answer = new TextImage(new Posn(50, 850), "hey", new Black());
-        answer = new OverlayImages(answer, player.draw(player.p));
+        WorldImage answer = set.player.draw(set.player.p);
         for(Rapper r : set.rappers) {
             answer = new OverlayImages(answer, r.draw(r.p));
         }
