@@ -23,7 +23,7 @@ public class Enemy extends Rapper {
     static WorldImage[] spritePool = new WorldImage[10];
     public Random rng = new Random();
     
-    public Enemy(int flow, int lyrics, int presence, int hype) {
+    public Enemy(int flow, int lyrics, int presence) {
         this.name = firstNames[rng.nextInt(firstNames.length)]+lastNames[rng.nextInt(lastNames.length)];
         this.sprite = spritePool[rng.nextInt(spritePool.length)];
         this.p = new Posn(rng.nextInt(MAXW), rng.nextInt(MAXH));
@@ -32,10 +32,10 @@ public class Enemy extends Rapper {
         this.flow = flow;
         this.lyrics = lyrics;
         this.presence = presence;
-        this.hype = hype;
         this.pathLength = 0;
         this.direction = -1;
         this.isDead = false; 
+        this.type = 1;
     }
     
     
@@ -129,6 +129,5 @@ public class Enemy extends Rapper {
         return answer;
     }
     
-    public boolean isPlayerHuh() {return false;}
     
 }
