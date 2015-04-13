@@ -12,16 +12,21 @@ public abstract class Rapper {
     public int flow;
     public int lyrics;
     public int presence;
-    public int hype;
+    public int type;
+
     public Integer mana;
     
     public abstract Rapper win(int xp, int attribute);
     public abstract Rapper loss(int xp, int attribute);
     public abstract Rapper move(String key);
-    public abstract boolean isDeadHuh();
     public abstract WorldImage draw();
     public abstract WorldImage draw(Posn p);
-    public abstract boolean isPlayerHuh();
+    
+    public Integer dist(Rapper r) {
+        int diffX = r.p.x-p.x;
+        int diffY = r.p.y-p.y;
+        return (int)Math.sqrt((int)(Math.pow(diffX, 2)+Math.pow(diffY, 2)));
+    }
     
     
 }
