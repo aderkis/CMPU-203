@@ -10,6 +10,8 @@ import javalib.worldimages.WorldImage;
 
 public class Player extends Rapper {
        
+    public int hype;
+        
     static int MAXW = 1000;
     static int MAXH = 750;
     
@@ -20,6 +22,7 @@ public class Player extends Rapper {
         this.dy = 0;
         this.flow = 5;
         this.hype = 5;
+        this.type = 0;
         if(type==0) {
             this.lyrics = 10;
             this.presence = 1;
@@ -32,6 +35,7 @@ public class Player extends Rapper {
     
     public Rapper move(String key) {
         Player answer = this;
+        
         if(key.equals("left")) {
             answer.dx = -10;
         }
@@ -113,11 +117,7 @@ public class Player extends Rapper {
         return answer;
     }
     
-    public boolean isPlayerHuh() {return true;}
-    
-    public Rapper kill() {return this;}
-    public boolean isDeadHuh() {return false;}
-    
-    
+    private Rapper kill() {return this;}
+   
     
 }
