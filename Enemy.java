@@ -103,16 +103,6 @@ public class Enemy extends Rapper {
         return answer;
     }
     
-    public Rapper win(int xp, int attribute) {
-        return this;
-    }
-    
-    public Rapper loss(int xp, int attribute) {
-        Enemy answer = this;
-        answer.isDead = true;
-        return answer;
-    }
-    
     public boolean isDeadHuh() {
         return isDead;
     }
@@ -126,6 +116,7 @@ public class Enemy extends Rapper {
     public WorldImage draw(Posn p) {
         WorldImage answer = new EllipseImage(p, 100, 50, new Blue());
         answer = new OverlayImages(answer, new TextImage(p, name, new Black()));
+        answer = new OverlayImages(answer, new TextImage(new Posn(p.x, p.y+15), "Flow: " + flow, new Black()));
         return answer;
     }
     
