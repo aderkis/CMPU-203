@@ -1,5 +1,6 @@
 package game2;
 
+import java.util.Random;
 import javalib.colors.Black;
 import javalib.colors.Red;
 import javalib.worldimages.EllipseImage;
@@ -33,7 +34,7 @@ public class Player extends Rapper {
     }
     
     
-    public Rapper move(String key) {
+    public Player move(String key) {
         Player answer = this;
         
         if(key.equals("left")) {
@@ -83,6 +84,7 @@ public class Player extends Rapper {
     
     public Player win(int xp, int attribute) {
         Player newPlayer = this;
+        Random rng = new Random();
         if(attribute==0) {
             newPlayer.lyrics += xp;
         } else {
@@ -90,11 +92,13 @@ public class Player extends Rapper {
         }
         newPlayer.flow += xp/2;
         newPlayer.hype += xp/2;
+        newPlayer.p = new Posn(rng.nextInt(MAXW), rng.nextInt(MAXH));
         return newPlayer;
     }
     
     public Player loss(int xp, int attribute) {
         Player newPlayer = this;
+        Random rng = new Random();
         if(attribute==0) {
             newPlayer.lyrics += xp/2;
         } else {
@@ -102,6 +106,7 @@ public class Player extends Rapper {
         }
         newPlayer.flow += xp/4;
         newPlayer.hype -= xp/2;
+        newPlayer.p = new Posn(rng.nextInt(MAXW), rng.nextInt(MAXH));
         return newPlayer;      
     }
     
@@ -114,6 +119,7 @@ public class Player extends Rapper {
     public WorldImage draw(Posn p) {
         WorldImage answer = new EllipseImage(p, 100, 50, new Red());
         answer = new OverlayImages(answer, new TextImage(p, name, new Black()));
+        answer = new OverlayImages(answer, new TextImage(new Posn(p.x, p.y+15), "Hype: " + hype, new Black()));
         return answer;
     }
     
