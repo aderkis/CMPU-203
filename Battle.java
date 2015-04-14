@@ -13,13 +13,12 @@ import javalib.worldimages.WorldImage;
 public class Battle extends World {
     
     public Rapper player;
-    public Rapper enemy;
+    public Enemy enemy;
     public Integer playerHP;
     public Integer enemyHP;
     public int numLyricalAttacks;
     public int numPresenceAttacks;
     public boolean isPlayerTurn;
-    public boolean endBattle;
     public List<Attack> validPlayerAttacks;
     public List<Attack> validEnemyAttacks;
     public AttackList menu;
@@ -48,7 +47,7 @@ public class Battle extends World {
     public static Attack expose = new Attack("Expose flaw", 1, 40, 20);
     public static Attack getPersonal = new Attack("Get personal", 1, 50, 25);
     
-    public Battle(Rapper player, Rapper enemy, Everyone set) {
+    public Battle(Rapper player, Enemy enemy, Everyone set) {
         this.player = player;
         this.player.mana = player.flow;
         this.enemy = enemy;
@@ -58,7 +57,6 @@ public class Battle extends World {
         this.numLyricalAttacks = 0;
         this.numPresenceAttacks = 0;
         this.isPlayerTurn = true;
-        this.endBattle = false;
         this.set = set;
         lyricAttacks.add(skip);
         lyricAttacks.add(endOfLineRhyme);
@@ -81,11 +79,10 @@ public class Battle extends World {
         this.menu = new AttackList(this.validPlayerAttacks, 0);
     }
     
-    public World onTick() {
+    public synchronized World onTick() {
         Battle answer = this;
         answer.validEnemyAttacks = validAttacks(answer.enemy);
         List<Attack> valid = answer.validEnemyAttacks;
-        answer.validPlayerAttacks = validAttacks(answer.player);
         answer.menu = new AttackList(answer.validPlayerAttacks, answer.menu.selectedIndex);
         if (!answer.isOver()) {
             if (!answer.isPlayerTurn) {
@@ -104,26 +101,24 @@ public class Battle extends World {
                 attrib = 1;
             }
             Everyone newSet = answer.set;
+            newSet.battle = false;
             if (answer.playerWonHuh()) {
-                answer.endBattle = true;
                 newSet = newSet.remove(enemy);
                 newSet.player = newSet.player.win(answer.xp(), attrib);
 
             } else {
-                answer.endBattle = true;
                 newSet.player = newSet.player.loss(answer.xp(), attrib);
 
             }
             World afterBattle = new Overworld(newSet);
-            this.worldEnds();
             return afterBattle;
         }
         return answer;
     }
 
-    public World onKeyEvent(String key) {
+    public synchronized World onKeyEvent(String key) {
         Battle answer = this;
-        if (!answer.endBattle) {
+        if (!answer.isOver()) {
             if (answer.isPlayerTurn) {          
                 int index = answer.menu.selectedIndex;
                 List<Attack> valid = answer.menu.attacks;
@@ -151,7 +146,7 @@ public class Battle extends World {
         return answer;
     }
     
-    public WorldImage makeImage() {
+    public synchronized WorldImage makeImage() {
         WorldImage answer = new OverlayImages(player.draw(), enemy.draw());
         answer = new OverlayImages(answer, new TextImage(new Posn(50, 500), "Your HP: " + playerHP.toString(), new Black()));
         answer = new OverlayImages(answer, new TextImage(new Posn(50, 515), "Your mana: " + player.mana.toString(), new Black()));
@@ -213,12 +208,12 @@ public class Battle extends World {
         int presence = r.presence;
         Integer mana = r.mana;
         for(Attack att : lyricAttacks) {
-            if(lyrics>=att.requiredLevel && mana >= att.requiredLevel) {
+            if(lyrics>=att.requiredLevel && mana >= att.requiredLevel && !answer.contains(att)) {
                 answer.add(att);
             }
         }
         for(Attack att : presenceAttacks) {
-            if(presence>=att.requiredLevel && mana >= att.requiredLevel) {
+            if(presence>=att.requiredLevel && mana >= att.requiredLevel && !answer.contains(att)) {
                 answer.add(att);
             }
         }
